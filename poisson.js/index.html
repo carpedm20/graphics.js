@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script>
+var width = 960,
+    height = 500;
+
+var sample = bestCandidateSampler(width, height, 10, 3000);
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+function Point(x, y) {
+  this.x = x || 0;
+  this.y = y || 0;
+}
+
+function Grid(width, height, min_dist) {
+  var row = int(width/min_dist)
+  var col = int(height/min_dist)
+
+  this.points = new Array(row);
+
+  for (var i=0; i<row; i++) {
+    this.points[i] = new Array(col);
+}
+
+function poissonDiskSampler(width, height, min_dist, new_points_count) {
+  var samplePoints = [];
+  var processPoints = [];
+
+  
+}
+</script>
