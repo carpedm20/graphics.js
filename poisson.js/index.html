@@ -3,18 +3,29 @@
 <body>
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script>
-var width = 960,
-    height = 500;
-
-var sample = bestCandidateSampler(width, height, 10, 3000);
-
-var svg = d3.select("body").append("svg")
-    .attr("width", width)
-    .attr("height", height);
+var WIDTH = 960,
+    HEIGHT = 500,
+    MIN_DIST = 10,
+    NEW_POINTS_COUNT = 3000;
 
 function Point(x, y) {
   this.x = x || 0;
   this.y = y || 0;
+}
+
+function Points() {
+  this.points = [];
+
+  this.push = function(point) {
+    this.points.push(point);
+  }
+
+  this.randomPop = function(array) {
+    var length = array.length;
+    var randIdx = int(length * Math.random());
+
+    return array[randIdx];
+  }
 }
 
 function Grid(width, height, min_dist) {
@@ -25,12 +36,45 @@ function Grid(width, height, min_dist) {
 
   for (var i=0; i<row; i++) {
     this.points[i] = new Array(col);
+  }
 }
 
 function poissonDiskSampler(width, height, min_dist, new_points_count) {
-  var samplePoints = [];
-  var processPoints = [];
+  this.width = width || WDITH;
+  this.height = height || HEIGHT;
+  this.min_dist = min_dist || MIN_DIST;
+  this.new_points_count = new_points_count || NEW_POINTS_COUNT;
 
-  
+  this.samplePoints = new Points();
+  this.processPoints = new Points();
+
+  this.grid = new Grid(width, height, min_dist);
+
+  this.pointToGrid = function (x, y) {
+    var row = int(this.width / this.min_dist);
+    var col = int(this.height / this.min_dist);
+
+    return this.grid.points[row][col];
+  }
+
+  var x = width * Math.random();
+  var y = height * Math.random();
+
+  var startPoint = new Point(x, y);
+
+  samplePoints.push(startPoint);
+  processPoints.push(startPoint);
+
+  while (samplePoints.length > 0) {
+    var tmpPoint = processPoints.randomPop();
+
+  }
 }
+
+var sample = bestCandidateSampler(WIDTH, HEIGHT, MIN_DIST, NEW_POINTS_COUNT);
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
 </script>
