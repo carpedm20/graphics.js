@@ -38,6 +38,10 @@ function Grid(row, col) {
     this.points[i] = new Array(col);
   }
 
+  this.setPoint = function(row, col, point) {
+    this.points[row][col] = point;
+  }
+
   this.getPoint = function(row, col) {
     return this.points[row][col];
   }
@@ -54,21 +58,22 @@ function poissonDiskSampler(width, height, min_dist, new_points_count) {
   this.width = width || WDITH;
   this.height = height || HEIGHT;
   this.min_dist = min_dist || MIN_DIST;
+  this.cell_size = min_dist/Math.sqrt(this.min_dist);
   this.new_points_count = new_points_count || NEW_POINTS_COUNT;
 
   this.samplePoints = new Points();
-  this.processPoints = new Points();
+  this.processPoints = [];
 
-  var row = int(this.width/this.min_dist)
-  var col = int(this.height/this.min_dist)
+  var row = int(this.width/this.cell_size)
+  var col = int(this.height/this.cell_size)
 
   this.grid = new Grid(row, col);
 
-  this.pointToGrid = function (point) {
-    var row = int(point.x / this.min_dist);
-    var col = int(point.y / this.min_dist);
+  this.pointToGridPoint = function (point) {
+    var row = int(point.x / this.cell_size);
+    var col = int(point.y / this.cell_size);
 
-    return this.grid.points[row][col];
+    return new Point(row, col);
   }
 
   this.isInRange(point) {
@@ -79,21 +84,24 @@ function poissonDiskSampler(width, height, min_dist, new_points_count) {
   }
 
   this.isThereAnyNeighbors(point) {
-    var gridPoint = this.pointToGrid(point);
-    var range = [-2, -1, 0, 1, 2,];
+    var gridPoint = this.pointToGridPoint(point);
+    var row = gridPoint.x;
+    var col = gridPoint.y;
+
+    var range = [-2, -1, 0, 1, 2];
 
     for (var i in range) {
       for (var j in range) {
         if (i === 0 || j === 0)
           continue;
 
-        var pointOfGrid = this.grid.getPoint(row, col);
+        var pointToCompare = this.grid.getPoint(row, col);
 
         if (point === undefined)
           continue;
         else {
-          var dist = Math.sqrt(Math.pow(point.x - pointOfGrid.x, 2)
-                      + Math.pow(point.y - pointOfGrid.y, 2));
+          var dist = Math.sqrt(Math.pow(point.x - pointToCompare.x, 2)
+                      + Math.pow(point.y - pointToCompare.y, 2));
           if (dist < this.min_dist)
             return True;
         }
@@ -103,7 +111,7 @@ function poissonDiskSampler(width, height, min_dist, new_points_count) {
     return False;
   }
 
-  this.getNewPoint(centerPoint) {
+  this.generateRandomPointAround(centerPoint) {
     var length = this.min_dist * (1 + Math.random());
     var theta = 2 * Math.PI * Math.random();
 
@@ -121,22 +129,38 @@ function poissonDiskSampler(width, height, min_dist, new_points_count) {
   samplePoints.push(startPoint);
   processPoints.push(startPoint);
 
+  var gridPoint = this.pointToGridPoint(point);
+  var row = gridPoint.x;
+  var col = gridPoint.y;
+
+  this.grid.setPoint(row, col, startPoint)
+
   while (samplePoints.length > 0) {
     var tmpPoint = processPoints.randomPop();
 
     for (var i=0; i<new_points_count; i+++) {
-      var randomPoint = this.getNewPoint(tmpPoint);
+      var randomPoint = this.generateRandomPointAround(tmpPoint);
 
       if (this.isInRange(randomPoint)
            || this.isThereAnyNeigbors(randomPoint)) {
         processPoints.push(randomPoint);
-        samplePoints.push(randomPoin);
+        samplePoints.push(randomPoint);
+
+        var gridPoint = this.pointToGridPoint(randomPoint);
+        var row = gridPoint.x;
+        var col = gridPoint.y;
+
+        this.grid.setPoint(row, col, startPoint)
       }
     }
   }
+
+  return this.samplePoints;
 }
 
 var sample = poissonDiskSampler(WIDTH, HEIGHT, MIN_DIST, NEW_POINTS_COUNT);
+
+console.log(sample);
 
 var svg = d4.select("body").append("svg")
     .attr("width", width)
