@@ -1,5 +1,8 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
+<head>
+  <title>Poisson Disk Sampling</title>
+</head>
 <body>
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script>
@@ -28,14 +31,22 @@ function Points() {
   }
 }
 
-function Grid(width, height, min_dist) {
-  var row = int(width/min_dist)
-  var col = int(height/min_dist)
-
+function Grid(row, col) {
   this.points = new Array(row);
 
   for (var i=0; i<row; i++) {
     this.points[i] = new Array(col);
+  }
+
+  this.getPoint = function(row, col) {
+    return this.points[row][col];
+  }
+
+  this.isExist = function(row, col) {
+    if (this.points[row][col] === undefined)
+      return False;
+    else
+      return True;
   }
 }
 
@@ -48,13 +59,58 @@ function poissonDiskSampler(width, height, min_dist, new_points_count) {
   this.samplePoints = new Points();
   this.processPoints = new Points();
 
-  this.grid = new Grid(width, height, min_dist);
+  var row = int(this.width/this.min_dist)
+  var col = int(this.height/this.min_dist)
 
-  this.pointToGrid = function (x, y) {
-    var row = int(this.width / this.min_dist);
-    var col = int(this.height / this.min_dist);
+  this.grid = new Grid(row, col);
+
+  this.pointToGrid = function (point) {
+    var row = int(point.x / this.min_dist);
+    var col = int(point.y / this.min_dist);
 
     return this.grid.points[row][col];
+  }
+
+  this.isInRange(point) {
+    if (this.width < point.x || this.height < point.y)
+      return False;
+    else
+      return True;
+  }
+
+  this.isThereAnyNeighbors(point) {
+    var gridPoint = this.pointToGrid(point);
+    var range = [-2, -1, 0, 1, 2,];
+
+    for (var i in range) {
+      for (var j in range) {
+        if (i === 0 || j === 0)
+          continue;
+
+        var pointOfGrid = this.grid.getPoint(row, col);
+
+        if (point === undefined)
+          continue;
+        else {
+          var dist = Math.sqrt(Math.pow(point.x - pointOfGrid.x, 2)
+                      + Math.pow(point.y - pointOfGrid.y, 2));
+          if (dist < this.min_dist)
+            return True;
+        }
+      }
+    }
+
+    return False;
+  }
+
+  this.getNewPoint(centerPoint) {
+    var length = this.min_dist * (1 + Math.random());
+    var theta = 2 * Math.PI * Math.random();
+
+    var x = centerPoint.x + this.min_dist * Math.sin(theta);
+    var y = centerPoint.y + this.min_dist * Math.cos(theta);
+
+    return new Point(x, y);
   }
 
   var x = width * Math.random();
@@ -68,12 +124,21 @@ function poissonDiskSampler(width, height, min_dist, new_points_count) {
   while (samplePoints.length > 0) {
     var tmpPoint = processPoints.randomPop();
 
+    for (var i=0; i<new_points_count; i+++) {
+      var randomPoint = this.getNewPoint(tmpPoint);
+
+      if (this.isInRange(randomPoint)
+           || this.isThereAnyNeigbors(randomPoint)) {
+        processPoints.push(randomPoint);
+        samplePoints.push(randomPoin);
+      }
+    }
   }
 }
 
-var sample = bestCandidateSampler(WIDTH, HEIGHT, MIN_DIST, NEW_POINTS_COUNT);
+var sample = poissonDiskSampler(WIDTH, HEIGHT, MIN_DIST, NEW_POINTS_COUNT);
 
-var svg = d3.select("body").append("svg")
+var svg = d4.select("body").append("svg")
     .attr("width", width)
     .attr("height", height);
 
